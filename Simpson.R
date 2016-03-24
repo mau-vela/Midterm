@@ -57,22 +57,23 @@ setMethod("initialize", "Simpson",
             #sort x and y in case are not sorted
             y <- y[order(x)] 
             x <- sort(x)
-            
+            yy <- y[x>=a & x<=b]
+            xx <- x[x>=a & x<=b]
             
             #Create n (panels according to x vector)
-            n <- length(x[x>=a & x<=b])-1
+            n <- length(xx[xx>=a & xx<=b])-1
             
             #Create h
             h <- (b-a)/n
             
             #create s
-            #in case n=1
-            if(n == 1){
-              s <- h/2 * (y[which(x == a)] + y[which(x == b)])
-            }
-            #when cases more than one
-            if(n > 1){
-              s <- h/2 * (y[which(x == a)] + y[which(x == b)] + sum(2*y[(which(x == a)+1):(which(x == b)-1)]))
+            #in case n=2
+            if (n == 2) {
+              s <-h/3* (yy[which(xx == a)] + 4*yy[which(xx == a)+1] + yy[which(xx == b)])
+            } 
+            # in case n greater than 2
+            else {
+              s <-h/3* (yy[which(xx == a)] + yy[n+1] + 2*sum(yy[seq(2,n,by=2)]) + 4 *sum(yy[seq(3,n-1, by=2)]))
             }
             #object s save
             .Object@s <- s
@@ -87,7 +88,7 @@ setMethod("initialize", "Simpson",
 #' @export
 #print for trapezoid
 setMethod(f="print",
-          signature="Trapezoid",
+          signature="Simpson",
           # create function
           definition=function(x){
             show(x)
@@ -96,22 +97,33 @@ setMethod(f="print",
 
 #' @export
 # plot method for object trapezoid
-setMethod(f="plot", signature="Trapezoid",
+setMethod(f="plot", signature="Simpson",
           #start definition
           definition=function(x=NULL, y=x, ...){
             # sort x and y vectors
-            Y <- x@y[order(x@x)]  
-            X <- x@x
-            Y <- Y[X>=x@a & X<=x@b]
-            X <- X[X>=x@a & X<=x@b]
+            YVEC <- x@y[order(x@x)]  
+            XVEC <- x@x
+            YVEC <- YVEC[XVEC>=x@a & XVEC<=x@b]
+            XVEC <- XVEC[XVEC>=x@a & XVEC<=x@b]
             n <- x@n
             # create plot
-            plot(X, Y,  xlab = "X", ylab = "f(x)", main = "Plot with Trapezoid rule")
-            # create trapezoid line overtop "function"
-            lines(X, Y, col="red")
+            plot(XVEC, YVEC,  xlab = "X", ylab = "f(x)", main = "Plot with Simpson rule")
             # create n segments to show subdivisions
-            segments(X, rep(0,n), X, Y, col="black", lty=2)
+            segments(XVEC, rep(0,n), XVEC, YVEC, col="black", lty=2)
+            #Draw parabolas
+            parabolas <- function(i){
+              # values between a and b
+              XX <- seq(from=XVEC[i-1], to=XVEC[i+1], length.out=10)
+              #Calculate p(x)
+              px<- (YVEC[i-1]) * ((XX - XVEC[i])*(XX - XVEC[i+1]))/((XVEC[i-1] - XVEC[i])*(XVEC[i-1] - XVEC[i+1]))+
+                (YVEC[i]) * ((XX - XVEC[i-1])*(XX - XVEC[i+1]))/((XVEC[i] - XVEC[i-1])*(XVEC[i] - XVEC[i+1]))+
+                (YVEC[i+1]) * ((XX - XVEC[i-1])*(XX - XVEC[i]))/((XVEC[i+1] - XVEC[i-1])*(XVEC[i+1] - XVEC[i])) 
+              lines(XX, px)
+           }
+            # Actually runs the function
+            invisible(lapply(2:(length(XVEC)-1), FUN=parabolas))
           }  
+          
 )
 
 
