@@ -21,7 +21,7 @@
 #' @export
 #Generic for tolTest
 setGeneric(name = "tolTest",
-           def=function(fun, a, b, start, tol, rule, correct, abserror)
+           def=function(fun, a, b, start, tol, rule, correct, abserror, start)
            {standardGeneric("tolTest")}
 )
 
@@ -30,9 +30,9 @@ setMethod(f="tolTest", definition=function(fun, a, b, start, tol, rule, correct)
             
             if(rule!="Simpson" & rule!="Trapezoid") stop("Put Simpson or Trapezoid in rule")
           
-            #Don't allow start==1 or less
-            if (!as.integer(start)) stop("Start most be positive integer")
-            if (start<=1) start=2
+            #Don't allow start==2 or less
+            if (start<=2 & rule=="Trapezoid") start=3
+            else if (start<=2 & rule=="Simpson") start=4
             
             #allow abserror to have initial value
             abserror <- tol+1
@@ -49,7 +49,7 @@ setMethod(f="tolTest", definition=function(fun, a, b, start, tol, rule, correct)
               #Integration
               #Using Simpson
               if (rule == "Simpson") {
-                if(start %% 2 != 0)  stop("When using Simpson's rule, length of x most be odd")
+                if(start %% 2 != 0)  stop("When using Simpson's rule, n most be even")
                 s <- y[1] + y[start+1] + 4*sum(y[seq(2,start,by=2)]) + 2 *sum(y[seq(3,start-1, by=2)])
                 s <- s*h/3
               }
@@ -58,8 +58,9 @@ setMethod(f="tolTest", definition=function(fun, a, b, start, tol, rule, correct)
                  s <- h * (y[1]/2 + sum(y[2:start]) + y[start+1]/2)
               }	
               abserror <- abs(s-correct)
-              start <- start + 1
+              if (rule == "Simpson") start <- start + 2
+              else start <- start+1
             }
             return(list("fun"=fun, "a"=a, "b"=b, "tolerance"=tol, "rule"=rule, 
-                        "correct"=correct, "abserror"=abserror))
+                        "correct"=correct, "abserror"=abserror, "final n"=start))
 })
