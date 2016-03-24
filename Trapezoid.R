@@ -16,8 +16,8 @@
 #' @rdname Trapezoid
 #' @export
 #Create method trapezoid that needs to have x vector , y vector , a and b limit values and the output from the integration
-setClass(Class="Trapezoid", slots = c(x = "numeric", y = "numeric", a = "numeric", b = "numeric", s = "numeric", n = "numeric"),
-         prototype = prototype( x = numeric(), y = numeric(), a = numeric(), b = numeric(), s = numeric(), n = numeric()), 
+setClass(Class="Trapezoid", slots = c(x = "numeric", y = "numeric", a = "numeric", b = "numeric", result = "numeric", rule= "character"),
+         prototype = prototype( x = numeric(), y = numeric(), a = numeric(), b = numeric(), result = numeric(), rule = character()), 
          validity=function(object){
            # Validity to check there are no missing arguments
            if(is.null(object@x) | is.null(object@y) | is.null(object@a) | is.null(object@b)){
@@ -48,6 +48,7 @@ setMethod("initialize", "Trapezoid",
             .Object@y <- y
             .Object@a <- a
             .Object@b <- b
+            .Object@rule <- "Trapezoid"
             
             #sort x and y in case are not sorted
             y <- y[order(x)] 
@@ -63,16 +64,15 @@ setMethod("initialize", "Trapezoid",
             #create s
             #in case n=1
             if(n == 1){
-              s <- h/2 * (y[which(x == a)] + y[which(x == b)])
+              result <- h/2 * (y[which(x == a)] + y[which(x == b)])
             }
             #when cases more than one
             if(n > 1){
-              s <- h/2 * (y[which(x == a)] + y[which(x == b)] + sum(2*y[(which(x == a)+1):(which(x == b)-1)]))
+              result  <- h/2 * (y[which(x == a)] + y[which(x == b)] + sum(2*y[(which(x == a)+1):(which(x == b)-1)]))
             }
             #object s save
-            .Object@s <- s
-            #object n save
-            .Object@n <- n
+            .Object@result <- result
+
 
             value=callNextMethod()
             return(value)
@@ -99,7 +99,7 @@ setMethod(f="plot", signature="Trapezoid",
             X <- x@x
             Y <- Y[X>=x@a & X<=x@b]
             X <- X[X>=x@a & X<=x@b]
-            n <- x@n
+            n <- length(X)-1
             # create plot
             plot(X, Y,  xlab = "X", ylab = "f(x)", main = "Plot with Trapezoid rule")
             # create trapezoid line overtop "function"

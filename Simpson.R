@@ -16,8 +16,8 @@
 #' @rdname Simpson
 #' @export
 #Create method trapezoid that needs to have x vector , y vector , a and b limit values and the output from the integration
-setClass(Class="Simpson", slots = c(x = "numeric", y = "numeric", a = "numeric", b = "numeric", s = "numeric", n = "numeric"),
-         prototype = prototype( x = numeric(), y = numeric(), a = numeric(), b = numeric(), s = numeric(), n = numeric()), 
+setClass(Class="Simpson", slots = c(x = "numeric", y = "numeric", a = "numeric", b = "numeric", result = "numeric", rule= "character"),
+         prototype = prototype( x = numeric(), y = numeric(), a = numeric(), b = numeric(), result = numeric(), rule = character()), 
          validity=function(object){
            # Validity to check there are no missing arguments
            if(is.null(object@x) | is.null(object@y) | is.null(object@a) | is.null(object@b)){
@@ -36,7 +36,7 @@ setClass(Class="Simpson", slots = c(x = "numeric", y = "numeric", a = "numeric",
              stop("a and b most correspond to values of x")
            }  
            #n must be even
-           if(object@n %% 2 != 0){
+           if(length(object@x) %% 2 == 0){
              stop("When using Simpson's rule, length of x's to be used most be odd")
            }
            
@@ -53,6 +53,7 @@ setMethod("initialize", "Simpson",
             .Object@y <- y
             .Object@a <- a
             .Object@b <- b
+            .Object@rule <- "Simpson"
             
             #sort x and y in case are not sorted
             y <- y[order(x)] 
@@ -69,16 +70,15 @@ setMethod("initialize", "Simpson",
             #create s
             #in case n=2
             if (n == 2) {
-              s <-h/3* (yy[which(xx == a)] + 4*yy[which(xx == a)+1] + yy[which(xx == b)])
+              result <-h/3* (yy[which(xx == a)] + 4*yy[which(xx == a)+1] + yy[which(xx == b)])
             } 
             # in case n greater than 2
             else {
-              s <-h/3* (yy[which(xx == a)] + yy[n+1] + 2*sum(yy[seq(2,n,by=2)]) + 4 *sum(yy[seq(3,n-1, by=2)]))
+              result <-h/3* (yy[which(xx == a)] + yy[n+1] + 2*sum(yy[seq(2,n,by=2)]) + 4 *sum(yy[seq(3,n-1, by=2)]))
             }
             #object s save
-            .Object@s <- s
-            #object n save
-            .Object@n <- n
+            .Object@result <- result
+
             
             value=callNextMethod()
             return(value)
@@ -105,7 +105,7 @@ setMethod(f="plot", signature="Simpson",
             XVEC <- x@x
             YVEC <- YVEC[XVEC>=x@a & XVEC<=x@b]
             XVEC <- XVEC[XVEC>=x@a & XVEC<=x@b]
-            n <- x@n
+            n <- length(XVEC)-1
             # create plot
             plot(XVEC, YVEC,  xlab = "X", ylab = "f(x)", main = "Plot with Simpson rule")
             # create n segments to show subdivisions
