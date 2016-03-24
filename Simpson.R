@@ -1,8 +1,8 @@
-#' A Trapezoid object 
+#' A Simpson object 
 #' 
-#' Objects of class \code{Trapezoid} are created using \code{integrateIt} function. 
+#' Objects of class \code{Simpson} are created using \code{integrateIt} function. 
 #' 
-#' An object of the class 'Trapezoid' has the following slots:
+#' An object of the class 'Simpson' has the following slots:
 #' \itemize{
 #' \item \code{x} Vector of x values
 #' \item \code{y} Vector of y values
@@ -12,11 +12,11 @@
 #'
 #' @author Mauricio Vela
 #'
-#' @aliases Trapezoid-class initialize,Trapezoid-method print,Trapezoid-method plot, Trapezoid-method
-#' @rdname Trapezoid
+#' @aliases Simpson-class initialize,Simpson-method print,Simpson-method plot, Simpson-method
+#' @rdname Simpson
 #' @export
 #Create method trapezoid that needs to have x vector , y vector , a and b limit values and the output from the integration
-setClass(Class="Trapezoid", slots = c(x = "numeric", y = "numeric", a = "numeric", b = "numeric", s = "numeric", n = "numeric"),
+setClass(Class="Simpson", slots = c(x = "numeric", y = "numeric", a = "numeric", b = "numeric", s = "numeric", n = "numeric"),
          prototype = prototype( x = numeric(), y = numeric(), a = numeric(), b = numeric(), s = numeric(), n = numeric()), 
          validity=function(object){
            # Validity to check there are no missing arguments
@@ -34,14 +34,19 @@ setClass(Class="Trapezoid", slots = c(x = "numeric", y = "numeric", a = "numeric
            # make sure a and b are included in x
            if(!(object@a %in% object@x & object@b %in% object@x)){
              stop("a and b most correspond to values of x")
-           }           
+           }  
+           #n must be even
+           if(object@n %% 2 != 0){
+             stop("When using Simpson's rule, length of x's to be used most be odd")
+           }
+           
          }
 )
 
 
 #' @export
 #intialize trapezoid
-setMethod("initialize", "Trapezoid",
+setMethod("initialize", "Simpson",
           function(.Object, x, y, a, b){
             #assign objects
             .Object@x <- x
@@ -52,14 +57,14 @@ setMethod("initialize", "Trapezoid",
             #sort x and y in case are not sorted
             y <- y[order(x)] 
             x <- sort(x)
-                   
+            
             
             #Create n (panels according to x vector)
             n <- length(x[x>=a & x<=b])-1
-
+            
             #Create h
             h <- (b-a)/n
-
+            
             #create s
             #in case n=1
             if(n == 1){
@@ -73,7 +78,7 @@ setMethod("initialize", "Trapezoid",
             .Object@s <- s
             #object n save
             .Object@n <- n
-
+            
             value=callNextMethod()
             return(value)
           }
